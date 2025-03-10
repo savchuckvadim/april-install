@@ -1,4 +1,4 @@
-version: '5.5'
+version: '1'
 
 services:
   # PHP-FPM Service для Laravel
