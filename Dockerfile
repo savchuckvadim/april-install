@@ -1,4 +1,4 @@
-FROM php:8.4-fpm
+FROM php:8.3-fpm
 
 # Устанавливаем зависимости
 RUN apt-get update && apt-get install -y \
@@ -19,7 +19,15 @@ RUN apt-get update && apt-get install -y \
     libcurl4-openssl-dev \
     pkg-config \
     libssl-dev \
-    && docker-php-ext-install intl pdo_mysql mbstring zip exif pcntl \
+    && docker-php-ext-install \
+        intl \
+        pdo_mysql \
+        mbstring \
+        zip \
+        exif \
+        pcntl \
+        bcmath \ 
+        sodium  \
     && pecl install redis \
     && docker-php-ext-enable redis
 
@@ -33,20 +41,16 @@ WORKDIR /var/www/html
 COPY . /var/www/html/
 
 # Устанавливаем зависимости Laravel
-RUN composer install
-
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+RUN composer install --no-dev --optimize-autoloader  # 🔹 Оптимизация и игнор dev-зависимостей
 
 # Устанавливаем права
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-
 # Открываем порт
 EXPOSE 9000
 
-# Запускаем PHP-FPM
-# CMD ["php-fpm"]
-
 # Указываем стартовый процесс
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 ENTRYPOINT ["/entrypoint.sh"]
