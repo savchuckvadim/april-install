@@ -18,9 +18,9 @@ services:
     # depends_on:
     #   - redis
     depends_on:
-      db:
+      install-db:
         condition: service_healthy  # Ждём, пока MySQL будет готов
-      redis:
+      install-redis:
         condition: service_started    
     # command: /bin/sh -c "php-fpm & php artisan websockets:serve"
     # command: /bin/sh -c "php-fpm & sleep 10 && php artisan key:generate && php artisan migrate --force"
