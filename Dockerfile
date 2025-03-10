@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y \
     libcurl4-openssl-dev \
     pkg-config \
     libssl-dev \
+    libsodium-dev \  
     && docker-php-ext-install \
         intl \
         pdo_mysql \
@@ -26,10 +27,11 @@ RUN apt-get update && apt-get install -y \
         zip \
         exif \
         pcntl \
-        bcmath \ 
-        sodium  \
+        bcmath \
+        sodium \ 
     && pecl install redis \
     && docker-php-ext-enable redis
+
 
 # Устанавливаем Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
