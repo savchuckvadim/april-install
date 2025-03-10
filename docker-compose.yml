@@ -1,0 +1,121 @@
+version: '5.5'
+
+services:
+  # PHP-FPM Service для Laravel
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: lpbx-app
+    container_name: lpbx-app
+    restart: "always"
+    tty: true
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    networks:
+      - app-network
+    # depends_on:
+    #   - redis
+    depends_on:
+      db:
+        condition: service_healthy  # Ждём, пока MySQL будет готов
+      redis:
+        condition: service_started    
+    # command: /bin/sh -c "php-fpm & php artisan websockets:serve"
+    # command: /bin/sh -c "php-fpm & sleep 10 && php artisan key:generate && php artisan migrate --force"
+    command: php-fpm
+
+
+
+    # Nginx Service
+  webserver:
+    image: nginx:alpine
+    container_name: lpbx-webserver
+    restart: "always"
+    tty: true
+    ports:
+      - "8034:80"
+    volumes:
+      # - ./:/var/www/html
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/nginx/ssl
+    networks:
+      - app-network
+    depends_on:
+      - app
+
+  # db:
+  #   image: mysql:8.0
+  #   container_name: lpbx_db
+  #   restart: "unless-stopped"
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: cfdx # Задай свой пароль для root
+  #     MYSQL_DATABASE: lpbx # Название базы данных
+  #     MYSQL_USER: lpbx # Имя пользователя
+  #     MYSQL_PASSWORD: lpbx # Пароль пользователя
+  #   ports:
+  #     - "3308:3306"
+  #   volumes:
+  #     - db_data:/var/lib/mysql
+  #   networks:
+  #     - app-network
+
+
+
+  db:
+    image: mysql:8.0
+    container_name: lpbx_db
+    restart: "unless-stopped"
+    environment:
+      MYSQL_ROOT_PASSWORD: cfdx
+      MYSQL_DATABASE: lpbx
+      MYSQL_USER: lpbx
+      MYSQL_PASSWORD: lpbx
+    ports:
+      - "3308:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - app-network
+    healthcheck:  # Добавляем проверку здоровья
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Service
+  redis:
+    image: redis:alpine
+    container_name: lpbx-redis
+    restart: "unless-stopped"
+    ports:
+      - "6334:6379"
+    networks:
+      - app-network
+
+  # queue-default:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: lpbx-queue     
+  #   command: php /var/www/html/artisan queue:work redis --sleep=3 --tries=1
+  #   volumes:
+  #     - .:/var/www/html
+  #   user: 'www-data'
+  #   networks:
+  #     - app-network
+  #   depends_on:
+  #     - app
+  #     - redis
+  #   deploy:
+  #     replicas: 1
+  #   restart: unless-stopped
+
+volumes:
+  db_data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge
