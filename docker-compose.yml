@@ -2,7 +2,7 @@ version: '3.3'
 
 services:
   # PHP-FPM Service для Laravel
-  app:
+  install-app:
     build:
       context: .
       dockerfile: Dockerfile
@@ -43,7 +43,7 @@ services:
     networks:
       - app-network
     depends_on:
-      - app
+      - install-app
 
   # db:
   #   image: mysql:8.0
@@ -63,7 +63,7 @@ services:
 
 
 
-  db:
+  install-db:
     image: mysql:8.0
     container_name: lpbx_db
     restart: "unless-stopped"
@@ -85,7 +85,7 @@ services:
       retries: 5
 
   # Redis Service
-  redis:
+  install-redis:
     image: redis:alpine
     container_name: lpbx-redis
     restart: "unless-stopped"
@@ -94,23 +94,6 @@ services:
     networks:
       - app-network
 
-  # queue-default:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   container_name: lpbx-queue     
-  #   command: php /var/www/html/artisan queue:work redis --sleep=3 --tries=1
-  #   volumes:
-  #     - .:/var/www/html
-  #   user: 'www-data'
-  #   networks:
-  #     - app-network
-  #   depends_on:
-  #     - app
-  #     - redis
-  #   deploy:
-  #     replicas: 1
-  #   restart: unless-stopped
 
 volumes:
   db_data:
