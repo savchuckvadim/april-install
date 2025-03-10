@@ -29,7 +29,7 @@ services:
 
 
     # Nginx Service
-  webserver:
+  install-webserver:
     image: nginx:alpine
     container_name: lpbx-webserver
     restart: "always"
